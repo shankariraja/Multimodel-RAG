@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Application UI</title>
+    <style>
+        body {
+    font-family: Arial, sans-serif;
+    background-color: #ffffff;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.header {
+    background-color: #007bff;
+    color: white;
+    padding: 10px;
+    text-align: center;
+}
+
+.chat-box {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    background-color: white;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    background-color: #ffffff;
+    margin: 50px 75px 50px 75px; /* Ensures the input group doesn't touch the edges on the right, left, and bottom */
+}
+
+.input-group input[type="text"] {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    margin: 0 10px;
+}
+
+.input-group input[type="file"] {
+    display: none;
+}
+
+.input-group label {
+    margin: 0 10px;
+    cursor: pointer;
+}
+
+.input-group label img {
+    width: 24px;
+    height: 24px;
+}
+
+.input-group button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.input-group button:disabled {
+    background-color: #999;
+}
+
+.chat-bubble {
+    max-width: 75%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    position: relative;
+}
+
+.chat-bubble.user {
+    background-color: #007bff;
+    color: white;
+    align-self: flex-start;
+}
+
+
+.chat-bubble.bot {
+    background-color: #f0f0f0;
+    align-self: flex-start;
+}
+
+.spinner {
+    display: none;
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top-color: #007bff;
+    animation: spin 1s infinite linear;
+    align-self: center;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>RAG Application</h2>
+    </div>
+    <div class="chat-box" id="chatBox"></div>
+    <div class="input-group">
+        <label for="fileInput">
+            <img src="src/doc.png" alt="Upload PDF">
+        </label>
+        <input type="file" id="fileInput" accept="application/pdf">
+        <input type="text" id="queryInput" placeholder="Enter your query...">
+        <button id="submitBtn" onclick="submitForm()">Submit</button>
+    </div>
+    <div class="spinner" id="spinner"></div>
+    <script>
+        let chatHistory = [];
+    
+        function appendChatBubble(content, className) {
+            const chatBox = document.getElementById('chatBox');
+            const bubble = document.createElement('div');
+            bubble.className = 'chat-bubble ' + className;
+            bubble.textContent = content;
+            chatBox.appendChild(bubble);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    
+        function updateChatHistory() {
+            const chatBox = document.getElementById('chatBox');
+            chatBox.innerHTML = '';
+            chatHistory.forEach(entry => {
+                appendChatBubble(entry.content, entry.className);
+            });
+        }
+    
+        async function submitForm() {
+            const queryInput = document.getElementById('queryInput');
+            const fileInput = document.getElementById('fileInput');
+            const submitBtn = document.getElementById('submitBtn');
+            const spinner = document.getElementById('spinner');
+    
+            if (!queryInput.value || !fileInput.files.length) {
+                alert('Please enter a query and select a PDF file.');
+                return;
+            }
+    
+            chatHistory.push({ content: queryInput.value, className: 'user' });
+            updateChatHistory();
+    
+            submitBtn.disabled = true;
+            spinner.style.display = 'block';
+    
+            const formData = new FormData();
+            formData.append('query', queryInput.value);
+            formData.append('file', fileInput.files[0]);
+    
+            try {
+                const response = await fetch('http://127.0.0.1:5000/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+    
+                const result = await response.json();
+    
+                chatHistory.push({ content: 'Uploading document...', className: 'bot' });
+                updateChatHistory();
+    
+                chatHistory.push({ content: 'File uploaded successfully. Processing your query...', className: 'bot' });
+                updateChatHistory();
+    
+                setTimeout(() => {
+                    chatHistory.push({ content: result.response, className: 'bot' });
+                    updateChatHistory();
+                    submitBtn.disabled = false;
+                    queryInput.value = '';
+                    fileInput.value = '';
+                    spinner.style.display = 'none';
+                }, 2000);
+    
+            } catch (error) {
+                chatHistory.push({ content: 'Error processing your request. Please try again.', className: 'bot' });
+                updateChatHistory();
+                submitBtn.disabled = false;
+                spinner.style.display = 'none';
+            }
+        }
+    </script>
+    
+</body>
+</html>
