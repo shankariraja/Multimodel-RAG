@@ -1,5 +1,5 @@
 # app/routes.py
-from flask import Blueprint, request, jsonify
+from flask import Blueprint,Flask, request, jsonify
 import os
 import requests
 
@@ -37,7 +37,7 @@ def upload_file():
     data = {'query': query}
     
     try:
-        backend_url = 'http://127.0.0.1:5001/process'  # Replace with your actual backend URL
+        backend_url = f'http://127.0.0.1:{os.getenv("PORT", "5001")}/process'  # Replace with your actual backend URL
         response = requests.post(backend_url, files=files, data=data)
         
         if response.status_code == 200:
@@ -51,3 +51,8 @@ def upload_file():
     except requests.exceptions.RequestException as e:
         print(f"Error forwarding request to backend: {e}")
         return jsonify({'response': 'Error processing your request'}), 500
+app = Flask(__name__)
+app.register_blueprint(routes)
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=os.getenv("PORT", "5000"))  # Use PORT environment variable
