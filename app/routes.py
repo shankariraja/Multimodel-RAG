@@ -51,8 +51,3 @@ def upload_file():
     except requests.exceptions.RequestException as e:
         print(f"Error forwarding request to backend: {e}")
         return jsonify({'response': 'Error processing your request'}), 500
-app = Flask(__name__)
-app.register_blueprint(routes)
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=os.getenv("PORT", "5000"))  # Use PORT environment variable
