@@ -12,6 +12,10 @@ MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+@routes.route('/')
+def index():
+    return "Welcome to the Multimodel RAG API!"
+
 @routes.route('/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files or 'query' not in request.form:
