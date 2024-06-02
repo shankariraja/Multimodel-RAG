@@ -41,7 +41,7 @@ def upload_file():
     data = {'query': query}
     
     try:
-        backend_url = f'http://127.0.0.1:{os.getenv("PORT", "5001")}/process'  # Replace with your actual backend URL
+        backend_url = f'http://127.0.0.1:{os.getenv("PORT", "5001")}/process'   # Replace with your actual backend URL
         response = requests.post(backend_url, files=files, data=data)
         
         if response.status_code == 200:
