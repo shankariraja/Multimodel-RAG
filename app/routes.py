@@ -1,5 +1,5 @@
 # app/routes.py
-from flask import Blueprint,Flask, request, jsonify
+from flask import Blueprint, request, jsonify, render_template
 import os
 import requests
 
@@ -14,7 +14,7 @@ def allowed_file(filename):
 
 @routes.route('/')
 def index():
-    return "Welcome to the Multimodel RAG API!"
+    return render_template('index.html')
 
 @routes.route('/upload', methods=['POST'])
 def upload_file():
